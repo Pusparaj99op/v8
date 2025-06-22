@@ -217,26 +217,59 @@ void initializeSystem() {
   strcpy_P(ssid, WIFI_SSID);
   strcpy_P(password, WIFI_PASSWORD);
   
+  // Print network info
+  Serial.print(F("SSID: "));
+  Serial.println(ssid);
+  
+  // Set WiFi mode and power
+  WiFi.mode(WIFI_STA);
+  WiFi.setTxPower(WIFI_POWER_19_5dBm);  // Maximum power for better connection
+  delay(1000);
+  
+  // Disconnect any previous connection
+  WiFi.disconnect(true);
+  delay(1000);
+  
   WiFi.begin(ssid, password);
   
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+  Serial.print(F("Connecting"));
+  
+  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
     delay(500);
     Serial.print(F("."));
     attempts++;
+    
+    // Print status every 10 attempts
+    if (attempts % 10 == 0) {
+      Serial.println();
+      Serial.print(F("Attempt "));
+      Serial.print(attempts);
+      Serial.print(F("/30 - Status: "));
+      Serial.println(getWiFiStatusString());
+      Serial.print(F("Continuing"));
+    }
   }
+  
+  Serial.println();
   
   if (WiFi.status() == WL_CONNECTED) {
     systemStatus.wifiConnected = true;
-    Serial.println(F("WiFi connected"));
+    Serial.println(F("WiFi connected!"));
     Serial.print(F("IP address: "));
     Serial.println(WiFi.localIP());
+    Serial.print(F("Signal strength: "));
+    Serial.print(WiFi.RSSI());
+    Serial.println(F(" dBm"));
     
     // Configure time
     configTime(19800, 0, "pool.ntp.org"); // IST offset
   } else {
     systemStatus.wifiConnected = false;
-    Serial.println(F("WiFi connection failed"));
+    Serial.println(F("WiFi connection failed!"));
+    Serial.print(F("Final status: "));
+    Serial.println(getWiFiStatusString());
+    Serial.println(F("Check SSID/password and signal strength"));
   }
 }
 
@@ -511,15 +544,72 @@ void checkWiFiConnection() {
     systemStatus.wifiConnected = false;
     
     Serial.println(F("WiFi disconnected, reconnecting..."));
+    Serial.print(F("Status: "));
+    Serial.println(getWiFiStatusString());
+    
+    // Try reconnect first
     WiFi.reconnect();
     
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 10) {
       delay(500);
+      Serial.print(F("."));
       attempts++;
     }
     
-    systemStatus.wifiConnected = (WiFi.status() == WL_CONNECTED);
+    if (WiFi.status() == WL_CONNECTED) {
+      systemStatus.wifiConnected = true;
+      Serial.println(F("\nWiFi reconnected!"));
+      Serial.print(F("IP: "));
+      Serial.println(WiFi.localIP());
+    } else {
+      Serial.println(F("\nReconnect failed, trying full restart..."));
+      
+      // Full WiFi restart
+      WiFi.disconnect(true);
+      delay(1000);
+      WiFi.mode(WIFI_OFF);
+      delay(1000);
+      WiFi.mode(WIFI_STA);
+      delay(1000);
+      
+      // Try connection again
+      char ssid[32], password[32];
+      strcpy_P(ssid, WIFI_SSID);
+      strcpy_P(password, WIFI_PASSWORD);
+      WiFi.begin(ssid, password);
+      
+      attempts = 0;
+      while (WiFi.status() != WL_CONNECTED && attempts < 15) {
+        delay(500);
+        attempts++;
+      }
+      
+      systemStatus.wifiConnected = (WiFi.status() == WL_CONNECTED);
+      
+      if (systemStatus.wifiConnected) {
+        Serial.println(F("WiFi restart successful!"));
+      } else {
+        Serial.println(F("WiFi restart failed!"));
+      }
+    }
+  } else {
+    systemStatus.wifiConnected = true;
+  }
+}
+
+// Helper function to get WiFi status as string
+String getWiFiStatusString() {
+  switch (WiFi.status()) {
+    case WL_IDLE_STATUS: return F("Idle");
+    case WL_NO_SSID_AVAIL: return F("Network not found");
+    case WL_SCAN_COMPLETED: return F("Scan completed");
+    case WL_CONNECTED: return F("Connected");
+    case WL_CONNECT_FAILED: return F("Connection failed");
+    case WL_CONNECTION_LOST: return F("Connection lost");
+    case WL_WRONG_PASSWORD: return F("Wrong password");
+    case WL_DISCONNECTED: return F("Disconnected");
+    default: return F("Unknown");
   }
 }
 

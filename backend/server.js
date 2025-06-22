@@ -62,7 +62,15 @@ const limiter = rateLimit({
 app.use(helmet()); // Security headers
 app.use(compression()); // Compress responses
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: process.env.CORS_ORIGIN || [
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+    'http://192.168.1.9:8080',
+    'http://192.168.1.9:3000',
+    'null' // Allow file:// origins for test dashboard
+  ],
   credentials: true
 }));
 app.use(morgan('combined')); // Logging
@@ -187,11 +195,12 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 3001;
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log('🚀 Rescue.net AI Backend Server Started');
   console.log(`📍 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`🔗 External URL: http://192.168.1.9:${PORT}/api`);
   console.log('💓 Ready to save lives!');
 });
 

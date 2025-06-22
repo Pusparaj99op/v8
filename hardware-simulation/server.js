@@ -35,7 +35,11 @@ app.post('/api/device/register', (req, res) => {
     isActive: true,
     lastSeen: new Date(),
     batteryLevel: 85,
-    signalStrength: 80
+    signalStrength: 80,
+    location: {
+      latitude: 21.2514, // Default to Nagpur, India
+      longitude: 79.0849
+    }
   });
 
   console.log(`Device registered: ${deviceId} for patient: ${patientId}`);
@@ -276,7 +280,7 @@ app.post('/api/emergency/respond', (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 server.listen(PORT, () => {
   console.log(`🏥 Rescue.net AI Hardware Simulation Server running on port ${PORT}`);
   console.log(`📡 WebSocket endpoint: ws://localhost:${PORT}`);
@@ -299,7 +303,11 @@ server.listen(PORT, () => {
       isActive: true,
       lastSeen: new Date(),
       batteryLevel: 85,
-      signalStrength: 80
+      signalStrength: 80,
+      location: {
+        latitude: 21.2514, // Nagpur, India
+        longitude: 79.0849
+      }
     });
     
     console.log('✅ Demo device auto-registered:', demoDevice.deviceId);

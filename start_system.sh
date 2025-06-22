@@ -130,7 +130,7 @@ echo ""
 
 # 1. Start AI Service (Python Flask)
 echo -e "${BLUE}1️⃣  Starting AI Service${NC}"
-if start_service "ai-service" "ai-models" "python3 ai_service.py" 5000; then
+if start_service "ai-service" "ai-models" "/home/kalvin-shah/micromamba/envs/rescue-net-ai/bin/python ai_service.py" 5000; then
     echo -e "${GREEN}   📊 AI Service: http://localhost:5000/health${NC}"
 else
     echo -e "${YELLOW}   ⚠️  AI Service failed to start, continuing with fallback mode...${NC}"
@@ -151,8 +151,8 @@ sleep 2
 
 # 3. Start Hardware Simulation
 echo -e "${BLUE}3️⃣  Starting Hardware Simulation${NC}"
-if start_service "hardware-sim" "hardware-simulation" "npm start" 3001; then
-    echo -e "${GREEN}   📡 Hardware Sim: http://localhost:3001/status${NC}"
+if start_service "hardware-sim" "hardware-simulation" "npm start" 3002; then
+    echo -e "${GREEN}   📡 Hardware Sim: http://localhost:3002/status${NC}"
 else
     echo -e "${RED}   ❌ Hardware simulation failed to start${NC}"
     exit 1
@@ -175,8 +175,8 @@ echo "=============================================="
 echo ""
 echo -e "${GREEN}📊 Service Status:${NC}"
 echo "🧠 AI Service:        http://localhost:5000"
-echo "🔧 Backend API:       http://localhost:5001"
-echo "📡 Hardware Sim:      http://localhost:3001"
+echo "🔧 Backend API:       http://localhost:3001"
+echo "📡 Hardware Sim:      http://localhost:3002"
 echo "🌐 Frontend:          http://localhost:3000"
 echo ""
 echo -e "${GREEN}🎯 Demo URLs:${NC}"
