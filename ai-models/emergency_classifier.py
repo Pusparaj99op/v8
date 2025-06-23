@@ -513,6 +513,86 @@ class EmergencyClassifier:
         except Exception as e:
             print(f"Error loading model: {e}")
             self.is_trained = False
+    
+    def retrain(self, new_training_data):
+        """
+        Retrain the emergency classifier with new data
+        Args:
+            new_training_data: List of health data dictionaries with emergency labels
+        Returns:
+            Training results dictionary
+        """
+        try:
+            print(f"Retraining emergency classifier with {len(new_training_data)} samples...")
+            
+            if isinstance(new_training_data, list) and len(new_training_data) > 0:
+                # Convert to DataFrame
+                import pandas as pd
+                df = pd.DataFrame(new_training_data)
+                
+                # Check for required columns
+                required_features = ['heart_rate', 'temperature', 'systolic_bp', 'diastolic_bp', 'spo2', 'respiratory_rate']
+                missing_cols = [col for col in required_features if col not in df.columns]
+                
+                if missing_cols:
+                    return {'error': f'Missing required columns: {missing_cols}'}
+                
+                # If no emergency_type column, assume normal for all
+                if 'emergency_type' not in df.columns:
+                    df['emergency_type'] = 'normal'
+                
+                # Generate additional features if missing
+                if 'activity_level' not in df.columns:
+                    df['activity_level'] = 5  # Default moderate activity
+                if 'fall_detected' not in df.columns:
+                    df['fall_detected'] = 0
+                if 'medication_taken' not in df.columns:
+                    df['medication_taken'] = 0
+                if 'stress_level' not in df.columns:
+                    df['stress_level'] = 3  # Default low stress
+                
+                # Prepare features and labels
+                feature_cols = self.feature_names
+                X = df[feature_cols].values
+                y = df['emergency_type'].values
+                
+                # Scale features
+                X_scaled = self.scaler.fit_transform(X)
+                
+                # Encode labels
+                y_encoded = self.label_encoder.fit_transform(y)
+                
+                # Retrain the ensemble model
+                if self.ensemble_model is None:
+                    # Initialize the ensemble if not already done
+                    from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+                    from sklearn.svm import SVC
+                    
+                    rf_classifier = RandomForestClassifier(
+                        n_estimators=100, max_depth=10, random_state=42, class_weight='balanced'
+                    )
+                    svm_classifier = SVC(
+                        kernel='rbf', probability=True, random_state=42, class_weight='balanced'
+                    )
+                    self.ensemble_model = VotingClassifier(
+                        estimators=[('rf', rf_classifier), ('svm', svm_classifier)],
+                        voting='soft'
+                    )
+                
+                self.ensemble_model.fit(X_scaled, y_encoded)
+                self.is_trained = True
+                
+                return {
+                    'status': 'success',
+                    'samples_used': len(new_training_data),
+                    'unique_emergency_types': len(set(y)),
+                    'retrained_at': datetime.now().isoformat()
+                }
+            else:
+                return {'error': 'Training data must be a non-empty list of dictionaries'}
+                
+        except Exception as e:
+            return {'error': f'Retraining failed: {str(e)}'}
 
 # Demo usage and testing
 if __name__ == "__main__":

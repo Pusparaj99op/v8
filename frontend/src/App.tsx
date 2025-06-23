@@ -12,6 +12,7 @@ import { CssBaseline, Box } from '@mui/material';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Page imports (we'll create these next)
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import PatientDashboard from './pages/PatientDashboard';
 import HospitalDashboard from './pages/HospitalDashboard';
@@ -151,6 +152,7 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public routes */}
+      <Route path="/" element={<LandingPage />} />
       <Route 
         path="/login" 
         element={
@@ -194,19 +196,16 @@ const AppRoutes: React.FC = () => {
       <Route path="/test" element={<TestConnectionPage />} />
 
       {/* Default redirects */}
-      <Route 
-        path="/" 
-        element={
-          isAuthenticated ? (
-            <Navigate to={user?.userType === 'patient' ? '/patient' : '/hospital'} replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } 
-      />
+      <Route path="/dashboard" element={
+        isAuthenticated ? (
+          <Navigate to={user?.userType === 'patient' ? '/patient' : '/hospital'} replace />
+        ) : (
+          <Navigate to="/login" replace />
+        )
+      } />
 
-      {/* Catch all - redirect to login */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* Catch all - redirect to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

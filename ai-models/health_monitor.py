@@ -14,12 +14,21 @@ try:
     from .anomaly_detector import HealthAnomalyDetector
     from .emergency_classifier import EmergencyClassifier
     from .risk_predictor import RiskPredictor
+    AI_MODELS_AVAILABLE = True
 except ImportError:
-    # Fallback for when running standalone or during development
-    print("Note: AI model dependencies not installed. Using simulation mode.")
-    HealthAnomalyDetector = None
-    EmergencyClassifier = None
-    RiskPredictor = None
+    # Try importing without relative imports
+    try:
+        from anomaly_detector import HealthAnomalyDetector
+        from emergency_classifier import EmergencyClassifier
+        from risk_predictor import RiskPredictor
+        AI_MODELS_AVAILABLE = True
+    except ImportError:
+        # Fallback for when running standalone or during development
+        print("Note: AI model dependencies not installed. Using simulation mode.")
+        HealthAnomalyDetector = None
+        EmergencyClassifier = None
+        RiskPredictor = None
+        AI_MODELS_AVAILABLE = False
 
 class HealthMonitor:
     """
@@ -83,21 +92,28 @@ class HealthMonitor:
         try:
             self.logger.info("Initializing AI models...")
             
-            # Initialize models
-            self.anomaly_detector = HealthAnomalyDetector()
-            self.emergency_classifier = EmergencyClassifier()
-            self.risk_predictor = RiskPredictor()
-            
-            # Try to load pre-trained models
-            try:
-                self.anomaly_detector.load_models()
-                self.emergency_classifier.load_model()
-                self.risk_predictor.load_model()
-                self.logger.info("Pre-trained models loaded successfully")
-            except Exception as e:
-                self.logger.warning(f"Could not load pre-trained models: {e}")
-                self.logger.info("Training new models...")
-                self._train_models()
+            # Initialize models only if classes are available
+            if AI_MODELS_AVAILABLE and HealthAnomalyDetector and EmergencyClassifier and RiskPredictor:
+                self.anomaly_detector = HealthAnomalyDetector()
+                self.emergency_classifier = EmergencyClassifier()
+                self.risk_predictor = RiskPredictor()
+                
+                # Try to load pre-trained models
+                try:
+                    self.anomaly_detector.load_models()
+                    self.emergency_classifier.load_model()
+                    self.risk_predictor.load_model()
+                    self.logger.info("Pre-trained models loaded successfully")
+                except Exception as e:
+                    self.logger.warning(f"Could not load pre-trained models: {e}")
+                    self.logger.info("Training new models...")
+                    self._train_models()
+            else:
+                self.logger.warning("AI model classes not available. Using simulation mode.")
+                self.anomaly_detector = None
+                self.emergency_classifier = None
+                self.risk_predictor = None
+                self.enable_ai_models = False
             
         except Exception as e:
             self.logger.error(f"Failed to initialize AI models: {e}")
@@ -687,22 +703,31 @@ class HealthMonitor:
             # Retrain each model if available
             if self.anomaly_detector:
                 try:
-                    result = self.anomaly_detector.retrain(training_data)
-                    retrain_results['anomaly_detector'] = result
+                    if hasattr(self.anomaly_detector, 'retrain'):
+                        result = self.anomaly_detector.retrain(training_data)
+                        retrain_results['anomaly_detector'] = result
+                    else:
+                        retrain_results['anomaly_detector'] = 'Retrain method not available'
                 except Exception as e:
                     retrain_results['anomaly_detector'] = f'Failed: {str(e)}'
             
             if self.emergency_classifier:
                 try:
-                    result = self.emergency_classifier.retrain(training_data)
-                    retrain_results['emergency_classifier'] = result
+                    if hasattr(self.emergency_classifier, 'retrain'):
+                        result = self.emergency_classifier.retrain(training_data)
+                        retrain_results['emergency_classifier'] = result
+                    else:
+                        retrain_results['emergency_classifier'] = 'Retrain method not available'
                 except Exception as e:
                     retrain_results['emergency_classifier'] = f'Failed: {str(e)}'
             
             if self.risk_predictor:
                 try:
-                    result = self.risk_predictor.retrain(training_data)
-                    retrain_results['risk_predictor'] = result
+                    if hasattr(self.risk_predictor, 'retrain'):
+                        result = self.risk_predictor.retrain(training_data)
+                        retrain_results['risk_predictor'] = result
+                    else:
+                        retrain_results['risk_predictor'] = 'Retrain method not available'
                 except Exception as e:
                     retrain_results['risk_predictor'] = f'Failed: {str(e)}'
             

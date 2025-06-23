@@ -87,7 +87,7 @@ def analyze_health_data():
             recent_health_data[patient_id] = recent_health_data[patient_id][-100:]
         
         # Get comprehensive analysis
-        analysis = health_monitor.analyze_health_data(health_data, patient_id)
+        analysis = health_monitor.analyze_health_data(patient_id, health_data)
         
         # Check for emergency
         if analysis.get('emergency_detected', False):
@@ -247,7 +247,7 @@ def simulate_emergency():
         emergency_data = health_monitor.generate_emergency_scenario(emergency_type)
         
         # Analyze the simulated emergency
-        analysis = health_monitor.analyze_health_data(emergency_data, patient_id)
+        analysis = health_monitor.analyze_health_data(patient_id, emergency_data)
         
         # Create emergency alert
         emergency_alert = {

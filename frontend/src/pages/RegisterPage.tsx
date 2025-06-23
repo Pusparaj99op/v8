@@ -534,6 +534,11 @@ const RegisterPage: React.FC = () => {
               Sign in here
             </Link>
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Link component={RouterLink} to="/" color="primary">
+              ← Back to Home
+            </Link>
+          </Typography>
         </Box>
 
         {/* Footer */}

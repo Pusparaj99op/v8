@@ -16,6 +16,30 @@ const { asyncHandler, AppError, validationError } = require('../middleware/error
 
 const router = express.Router();
 
+// Demo credentials for Central India Hackathon 2.0
+const DEMO_PATIENT = {
+  _id: 'demo_patient_id',
+  patientId: 'DEMO-PAT-001',
+  name: 'Demo Patient',
+  email: '9876543210',
+  phone: '9876543210',
+  deviceId: 'demo-device-001',
+  userType: 'patient',
+  isActive: true,
+  comparePassword: async (password) => password === 'patient123'
+};
+
+const DEMO_HOSPITAL = {
+  _id: 'demo_hospital_id',
+  hospitalId: 'HOSP-DEMO-001',
+  name: 'Demo General Hospital',
+  email: 'demo@hospital.com',
+  phone: '+91-755-1234567',
+  userType: 'hospital',
+  isActive: true,
+  comparePassword: async (password) => password === 'hospital123'
+};
+
 // Patient Registration
 router.post('/patient/register', asyncHandler(async (req, res) => {
   const {
@@ -183,7 +207,29 @@ router.post('/patient/login', asyncHandler(async (req, res) => {
     throw validationError('Email and password are required');
   }
   
-  // Find patient
+  // Check for demo credentials first
+  if (email === '9876543210' && password === 'patient123') {
+    const token = generateToken(DEMO_PATIENT._id, 'patient', { patientId: DEMO_PATIENT.patientId });
+    
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        token,
+        user: {
+          id: DEMO_PATIENT._id,
+          patientId: DEMO_PATIENT.patientId,
+          name: DEMO_PATIENT.name,
+          email: DEMO_PATIENT.email,
+          phone: DEMO_PATIENT.phone,
+          deviceId: DEMO_PATIENT.deviceId,
+          userType: 'patient'
+        }
+      }
+    });
+  }
+  
+  // Find patient in database
   const patient = await Patient.findOne({ 
     email: email.toLowerCase(),
     isActive: true 
@@ -211,16 +257,17 @@ router.post('/patient/login', asyncHandler(async (req, res) => {
     success: true,
     message: 'Login successful',
     data: {
-      patient: {
+      token,
+      user: {
         id: patient._id,
         patientId: patient.patientId,
         name: patient.name,
         email: patient.email,
         phone: patient.phone,
         deviceId: patient.deviceId,
-        assignedHospital: patient.assignedHospital
-      },
-      token
+        assignedHospital: patient.assignedHospital,
+        userType: 'patient'
+      }
     }
   });
 }));
@@ -233,7 +280,28 @@ router.post('/hospital/login', asyncHandler(async (req, res) => {
     throw validationError('Email and password are required');
   }
   
-  // Find hospital
+  // Check for demo credentials first
+  if (email === 'demo@hospital.com' && password === 'hospital123') {
+    const token = generateToken(DEMO_HOSPITAL._id, 'hospital', { hospitalId: DEMO_HOSPITAL.hospitalId });
+    
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        token,
+        user: {
+          id: DEMO_HOSPITAL._id,
+          hospitalId: DEMO_HOSPITAL.hospitalId,
+          name: DEMO_HOSPITAL.name,
+          email: DEMO_HOSPITAL.email,
+          phone: DEMO_HOSPITAL.phone,
+          userType: 'hospital'
+        }
+      }
+    });
+  }
+  
+  // Find hospital in database
   const hospital = await Hospital.findOne({ 
     email: email.toLowerCase(),
     isActive: true 
@@ -261,7 +329,8 @@ router.post('/hospital/login', asyncHandler(async (req, res) => {
     success: true,
     message: 'Login successful',
     data: {
-      hospital: {
+      token,
+      user: {
         id: hospital._id,
         hospitalId: hospital.hospitalId,
         name: hospital.name,
@@ -269,9 +338,9 @@ router.post('/hospital/login', asyncHandler(async (req, res) => {
         phone: hospital.phone,
         type: hospital.type,
         specializations: hospital.specializations,
-        emergencyResponse: hospital.emergencyResponse
-      },
-      token
+        emergencyResponse: hospital.emergencyResponse,
+        userType: 'hospital'
+      }
     }
   });
 }));

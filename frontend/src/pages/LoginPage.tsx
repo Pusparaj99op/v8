@@ -256,6 +256,33 @@ const LoginPage: React.FC = () => {
           >
             {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>
+
+          {/* Demo Credentials */}
+          <Paper sx={{ p: 2, bgcolor: '#f8f9fa', mb: 2 }}>
+            <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>
+              Demo Credentials:
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+              <strong>{tabValue === 0 ? 'Patient' : 'Hospital'}:</strong><br />
+              {tabValue === 0 ? 'Phone: 9876543210' : 'Email: demo@hospital.com'}<br />
+              Password: {tabValue === 0 ? 'patient123' : 'hospital123'}
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              fullWidth
+              sx={{ mt: 1 }}
+              onClick={() => {
+                if (tabValue === 0) {
+                  setFormData({ email: '9876543210', password: 'patient123' });
+                } else {
+                  setFormData({ email: 'demo@hospital.com', password: 'hospital123' });
+                }
+              }}
+            >
+              Use Demo Credentials
+            </Button>
+          </Paper>
         </form>
 
         <Divider sx={{ my: 2 }} />
@@ -266,6 +293,11 @@ const LoginPage: React.FC = () => {
             Don't have an account?{' '}
             <Link component={RouterLink} to="/register" color="primary">
               Register here
+            </Link>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Link component={RouterLink} to="/" color="primary">
+              ← Back to Home
             </Link>
           </Typography>
         </Box>

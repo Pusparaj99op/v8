@@ -337,6 +337,49 @@ class HealthAnomalyDetector:
         except Exception as e:
             print(f"Error loading models: {e}")
             self.is_trained = False
+    
+    def retrain(self, new_training_data):
+        """
+        Retrain the models with new data
+        Args:
+            new_training_data: List of health data dictionaries
+        Returns:
+            Training results dictionary
+        """
+        try:
+            print(f"Retraining anomaly detector with {len(new_training_data)} samples...")
+            
+            # Convert new data to DataFrame format
+            if isinstance(new_training_data, list):
+                import pandas as pd
+                df = pd.DataFrame(new_training_data)
+                
+                # Ensure we have the required columns
+                required_cols = ['heart_rate', 'temperature', 'systolic_bp', 'diastolic_bp', 'spo2', 'respiratory_rate']
+                missing_cols = [col for col in required_cols if col not in df.columns]
+                
+                if missing_cols:
+                    return {'error': f'Missing required columns: {missing_cols}'}
+                
+                # Retrain with new data
+                processed_data = self.preprocess_data(df[required_cols])
+                
+                # Train Isolation Forest
+                self.train_isolation_forest(processed_data)
+                
+                # Mark as trained
+                self.is_trained = True
+                
+                return {
+                    'status': 'success',
+                    'samples_used': len(new_training_data),
+                    'retrained_at': datetime.now().isoformat()
+                }
+            else:
+                return {'error': 'Training data must be a list of dictionaries'}
+                
+        except Exception as e:
+            return {'error': f'Retraining failed: {str(e)}'}
 
 # Demo usage and testing
 if __name__ == "__main__":

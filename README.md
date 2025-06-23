@@ -6,7 +6,26 @@
 
 Rescue.net AI is a comprehensive healthcare technology platform that combines AI/ML, IoT, web development, and real-time systems to save lives through intelligent emergency prediction and response coordination.
 
-## 🎯 Key Features
+## � NEW: Enhanced UI/UX Features
+
+### Beautiful Landing Page
+- **Modern Design** - Professional gradient-based layout with healthcare theme
+- **Feature Showcase** - Interactive cards highlighting platform capabilities  
+- **Demo Credentials** - Prominently displayed for easy access
+- **Call-to-Action** - Clear navigation to patient and hospital dashboards
+- **Responsive Design** - Optimized for all devices and screen sizes
+
+### Improved Login Experience
+- **Demo Auto-Fill** - One-click demo credential population
+- **Dual Access** - Separate patient and hospital login flows
+- **Enhanced Navigation** - Easy return to landing page
+- **Visual Feedback** - Clear loading states and error handling
+
+### Demo Credentials
+- **Patient Dashboard**: Phone `9876543210`, Password `patient123`
+- **Hospital Dashboard**: Email `demo@hospital.com`, Password `hospital123`
+
+## �🎯 Key Features
 
 - **Real-time Health Monitoring** - 24/7 vital signs tracking with <1 second latency
 - **AI-Powered Predictions** - Machine learning algorithms for emergency detection
@@ -46,6 +65,26 @@ rescue-net-ai/
 ```
 
 ## 🚀 Quick Start
+
+### 🎮 Try the Demo (Recommended)
+
+1. **Access the Landing Page**
+   ```
+   http://localhost:3000
+   ```
+
+2. **Patient Dashboard Demo**
+   - Click "Try Demo" on landing page
+   - Select "Patient" tab
+   - Use credentials: Phone `9876543210`, Password `patient123`
+   - Or click "Use Demo Credentials" for auto-fill
+
+3. **Hospital Dashboard Demo**
+   - Click "Sign In" and select "Hospital" tab  
+   - Use credentials: Email `demo@hospital.com`, Password `hospital123`
+   - Or click "Use Demo Credentials" for auto-fill
+
+### 💻 Full Installation
 
 ### Prerequisites
 - Node.js 18+ 

@@ -568,6 +568,95 @@ class RiskPredictor:
         except Exception as e:
             print(f"Error loading model: {e}")
             self.is_trained = False
+    
+    def retrain(self, new_training_data):
+        """
+        Retrain the risk predictor with new data
+        Args:
+            new_training_data: List of health data dictionaries with risk labels
+        Returns:
+            Training results dictionary
+        """
+        try:
+            print(f"Retraining risk predictor with {len(new_training_data)} samples...")
+            
+            if isinstance(new_training_data, list) and len(new_training_data) > 0:
+                # Convert to DataFrame
+                import pandas as pd
+                df = pd.DataFrame(new_training_data)
+                
+                # Check for required columns
+                required_features = ['heart_rate', 'temperature', 'systolic_bp', 'diastolic_bp', 'spo2', 'respiratory_rate']
+                missing_cols = [col for col in required_features if col not in df.columns]
+                
+                if missing_cols:
+                    return {'error': f'Missing required columns: {missing_cols}'}
+                
+                # Generate risk labels if not present
+                if 'risk_score' not in df.columns:
+                    # Simple risk scoring based on vital signs
+                    df['risk_score'] = self._calculate_simple_risk_score(df)
+                
+                # Generate additional features if missing
+                for feature in self.all_features:
+                    if feature not in df.columns:
+                        df[feature] = 0  # Default value
+                
+                # Prepare features and labels
+                X = df[self.all_features].values
+                y = df['risk_score'].values
+                
+                # Scale features
+                X_scaled = self.scaler.fit_transform(X)
+                
+                # Retrain the model
+                if self.risk_model is None:
+                    # Initialize the model if not already done
+                    from sklearn.ensemble import RandomForestRegressor
+                    self.risk_model = RandomForestRegressor(
+                        n_estimators=100, max_depth=10, random_state=42
+                    )
+                
+                self.risk_model.fit(X_scaled, y)
+                self.is_trained = True
+                
+                return {
+                    'status': 'success',
+                    'samples_used': len(new_training_data),
+                    'feature_count': len(self.all_features),
+                    'retrained_at': datetime.now().isoformat()
+                }
+            else:
+                return {'error': 'Training data must be a non-empty list of dictionaries'}
+                
+        except Exception as e:
+            return {'error': f'Retraining failed: {str(e)}'}
+    
+    def _calculate_simple_risk_score(self, df):
+        """Calculate simple risk score for training data"""
+        risk_scores = []
+        for _, row in df.iterrows():
+            score = 0
+            
+            # Heart rate risk
+            if row.get('heart_rate', 70) > 100 or row.get('heart_rate', 70) < 60:
+                score += 0.3
+            
+            # Temperature risk
+            if row.get('temperature', 37) > 38.5 or row.get('temperature', 37) < 35:
+                score += 0.3
+            
+            # Blood pressure risk
+            if row.get('systolic_bp', 120) > 140 or row.get('systolic_bp', 120) < 90:
+                score += 0.2
+            
+            # Oxygen saturation risk
+            if row.get('spo2', 98) < 95:
+                score += 0.2
+            
+            risk_scores.append(min(score, 1.0))  # Cap at 1.0
+        
+        return risk_scores
 
 # Demo usage
 if __name__ == "__main__":
